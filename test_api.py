@@ -1,38 +1,34 @@
 # test_api.py
 import os
 import google.generativeai as genai
+import pytest
 from dotenv import load_dotenv
 
-print("--- Iniciando prueba de API de Gemini ---")
+def test_gemini_api_connection():
+    """
+    Esta prueba verifica que podemos conectarnos a la API de Gemini y obtener una respuesta.
+    Utiliza la clave de API de las variables de entorno.
+    """
+    print("--- Iniciando prueba de conexión a la API de Gemini ---")
 
-# Cargar la clave de API desde el archivo .env
-load_dotenv()
-api_key = os.environ.get("GOOGLE_API_KEY")
+    # Cargar la clave de API desde el archivo .env o variables de entorno del CI
+    load_dotenv()
+    api_key = os.environ.get("GOOGLE_API_KEY")
 
-if not api_key:
-    print("ERROR: No se encontró la variable de entorno GOOGLE_API_KEY.")
-else:
-    try:
-        # Configurar la API (igual que en tu model.py)
-        genai.configure(
-            api_key=api_key, transport='rest',
-            client_options={'api_endpoint': 'generativelanguage.googleapis.com'}
-        )
+    # pytest.fail detendrá la prueba si la clave no está presente.
+    if not api_key:
+        pytest.fail("ERROR: No se encontró la variable de entorno GOOGLE_API_KEY.")
 
-        # Crear el modelo
-        model = genai.GenerativeModel('gemini-1.0-pro')
+    # La prueba fallará si hay una excepción durante la configuración o la llamada.
+    # No es necesario un bloque try/except, pytest lo maneja.
+    genai.configure(
+        api_key=api_key, transport='rest',
+        client_options={'api_endpoint': 'generativelanguage.googleapis.com'}
+    )
+    model = genai.GenerativeModel('gemini-1.0-pro')
 
-        # Hacer una pregunta simple
-        print("Enviando solicitud a Gemini...")
-        response = model.generate_content("Explica qué es una API en una oración.")
+    print("Enviando solicitud a Gemini...")
+    response = model.generate_content("Explica qué es una API en una oración.")
 
-        print("\n--- ¡ÉXITO! ---")
-        print("Respuesta de Gemini:")
-        print(response.text)
-
-    except Exception as e:
-        print("\n--- ¡FALLO! ---")
-        print("Se produjo un error al contactar con la API:")
-        print(e)
-
-print("\n--- Fin de la prueba ---")
+    assert response.text, "La API de Gemini devolvió una respuesta vacía."
+    print(f"Respuesta de Gemini recibida: {response.text}")

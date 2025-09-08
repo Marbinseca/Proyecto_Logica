@@ -15,27 +15,38 @@
         <p>Introduce dos fórmulas para determinar si son lógicamente equivalentes.</p>
         
         <form action="{{ url_for('equivalencia') }}" method="post" class="mb-4" novalidate>
-            {{ form.hidden_tag() }} {# Token CSRF #}
+            {# Si usas WTForms: reemplaza las líneas siguientes por {{ form.hidden_tag() }} #}
             <div class="mb-3">
-                {{ form.formula_a.label(class="form-label") }}
-                {{ form.formula_a(class="form-control", placeholder="Ej: P → Q") }}
+                <label for="formula-a" class="form-label">Fórmula A</label>
+                <div class="input-group">
+                    <input id="formula-a" name="formula_a" class="form-control" placeholder="Ej: P ∨ Q" data-default-target="true" />
+                    <button class="btn btn-outline-secondary btn-limpiar" type="button" title="Limpiar Fórmula A"><i class="bi bi-x-lg" aria-hidden="true"></i><span class="visually-hidden">Limpiar A</span></button>
+                </div>
             </div>
-            <div class="mb-3">
-                {{ form.formula_b.label(class="form-label") }}
-                {{ form.formula_b(class="form-control", placeholder="Ej: ¬P ∨ Q") }}
-            </div>
-            {{ form.submit(class="btn btn-primary w-100") }}
-        </form>
 
-        <!-- Contenedor de símbolos -->
-        <div class="symbol-container" aria-label="Tabla de símbolos">
-          <button type="button" class="symbol-button btn btn-light" data-symbol="¬" title="Negación">¬</button>
-          <button type="button" class="symbol-button btn btn-light" data-symbol="∧" title="Conjunción">∧</button>
-          <button type="button" class="symbol-button btn btn-light" data-symbol="∨" title="Disyunción">∨</button>
-          <button type="button" class="symbol-button btn btn-light" data-symbol="→" title="Condicional">→</button>
-          <button type="button" class="symbol-button btn btn-light" data-symbol="↔" title="Bicondicional">↔</button>
-          <button type="button" class="symbol-button btn btn-light" data-symbol="⊕" title="Disyunción exclusiva">⊕</button>
-        </div>
+            <div class="mb-3">
+                <label for="formula-b" class="form-label">Fórmula B</label>
+                <div class="input-group">
+                    <input id="formula-b" name="formula_b" class="form-control" placeholder="Ej: (P → Q) ∧ P" />
+                    <button class="btn btn-outline-secondary btn-limpiar" type="button" title="Limpiar Fórmula B"><i class="bi bi-x-lg" aria-hidden="true"></i><span class="visually-hidden">Limpiar B</span></button>
+                </div>
+            </div>
+
+            <div class="symbol-container mb-3" aria-label="Tabla de símbolos">
+                <button type="button" class="symbol-button btn btn-light" data-symbol="¬" title="Negación">¬</button>
+                <button type="button" class="symbol-button btn btn-light" data-symbol="∧" title="Conjunción">∧</button>
+                <button type="button" class="symbol-button btn btn-light" data-symbol="∨" title="Disyunción">∨</button>
+                <button type="button" class="symbol-button btn btn-light" data-symbol="→" title="Condicional">→</button>
+                <button type="button" class="symbol-button btn btn-light" data-symbol="↔" title="Bicondicional">↔</button>
+                <button type="button" class="symbol-button btn btn-light" data-symbol="(" title="(">(</button>
+                <button type="button" class="symbol-button btn btn-light" data-symbol=")" title=")">)</button>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-center">
+                <button type="submit" class="btn btn-primary">Verificar equivalencia</button>
+                <button type="button" class="btn btn-outline-secondary btn-limpiar" data-target="#formula-a">Limpiar todo</button>
+            </div>
+        </form>
 
         {% if resultado is not none %}
         <div class="mt-4" aria-live="polite">

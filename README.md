@@ -1,6 +1,6 @@
 # Analizador de Lógica Proposicional con IA
 
-[![Python Application CI](https://github.com/tu-usuario/tu-repositorio/actions/workflows/ci.yml/badge.svg)](https://github.com/tu-usuario/tu-repositorio/actions/workflows/ci.yml)
+[![Python Application CI](https://github.com/Marbinseca/Proyecto_Logica/actions/workflows/ci.yml/badge.svg)](https://github.com/Marbinseca/Proyecto_Logica/actions/workflows/ci.yml)
 
 Una aplicación web interactiva construida con Flask y Google Gemini para interpretar, analizar y simplificar proposiciones lógicas.
 
@@ -49,8 +49,8 @@ Sigue estos pasos para ejecutar el proyecto en tu máquina local.
 
 1.  **Clona el repositorio:**
     ```bash
-    git clone https://github.com/tu-usuario/tu-repositorio.git
-    cd tu-repositorio
+    git clone https://github.com/Marbinseca/Proyecto_Logica.git
+    cd Proyecto_Logica
     ```
 
 2.  **Crea y activa un entorno virtual:**

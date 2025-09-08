@@ -27,14 +27,22 @@ Esta herramienta educativa está diseñada para ayudar a estudiantes y entusiast
     -   Muestra cada paso del proceso de simplificación, indicando la ley lógica aplicada (ej. Ley de De Morgan, Ley distributiva, etc.).
 
 ## Tecnologías Utilizadas
-
 -   **Backend**: Python 3, Flask
 -   **Inteligencia Artificial**: Google Gemini API (a través de peticiones REST)
 -   **Frontend**: HTML5, CSS3, JavaScript
 -   **Framework CSS**: Bootstrap 5
 -   **Librerías Python**:
+    -   `Flask`: Micro-framework web.
+    -   `Flask-WTF`: Para la gestión de formularios y protección CSRF.
     -   `requests`: Para realizar llamadas a la API de Gemini.
     -   `python-dotenv`: Para gestionar las claves de API de forma segura.
+    -   `google-generativeai`: Cliente oficial de Python para la API de Gemini (alternativa a `requests`).
+    -   `pytest`: Para la ejecución de pruebas unitarias.
+
+## Nuevas Características
+
+-   **Verificador de Equivalencia**: Compara dos fórmulas lógicas y determina si son lógicamente equivalentes. Lo hace generando la tabla de verdad de su bicondicional y comprobando si es una tautología.
+-   **Guía de Leyes Lógicas**: Una página de referencia educativa que explica las principales leyes de equivalencia lógica (De Morgan, Distributiva, etc.) con ejemplos claros.
 
 ## Instalación y Puesta en Marcha
 
@@ -72,6 +80,7 @@ Sigue estos pasos para ejecutar el proyecto en tu máquina local.
     requests
     python-dotenv
     google-generativeai
+    Flask-WTF
     sympy
     ```
     Luego, instálalo usando pip:
@@ -100,6 +109,8 @@ La interfaz web está dividida en tres secciones principales accesibles desde la
 -   **Intérprete Proposicional**: Escribe una oración en el campo de texto y haz clic en "Convertir". La aplicación mostrará la fórmula simbólica y la leyenda correspondiente. Desde el resultado, puedes navegar directamente para generar su tabla de verdad o simplificar la fórmula.
 -   **Tabla de Verdad**: Introduce una fórmula simbólica (ej. `(P ∧ Q) → P`) y haz clic en "Generar". Se mostrará la tabla completa y la clasificación de la fórmula.
 -   **Simplificador**: Introduce una fórmula simbólica y haz clic en "Simplificar". Verás la fórmula simplificada y todos los pasos intermedios con las reglas lógicas aplicadas.
+-   **Verificador de Equivalencia**: Introduce dos fórmulas en sus respectivos campos para comprobar si son equivalentes.
+-   **Leyes Lógicas**: Accede a esta página desde la barra lateral para consultar una guía de referencia rápida sobre las leyes lógicas.
 
 ## Cómo Funciona la IA
 

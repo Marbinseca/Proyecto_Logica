@@ -1,8 +1,7 @@
-Flask
-requests
-python-dotenv
-sympy
-pytest
-Flask-WTF
-WTForms
-google-generativeai
+Flask>=2.2,<3
+Flask-WTF>=1.1
+WTForms>=3.0
+python-dotenv>=1.0
+requests>=2.28
+sympy>=1.10
+urllib3>=1.26

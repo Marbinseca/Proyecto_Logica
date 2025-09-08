@@ -1,11 +1,12 @@
 # c:\Users\mseca\OneDrive\Documents\Proyecto_Logica\controller.py
-from flask import Flask, render_template, request, flash
+from flask import Flask, render_template, request, flash, redirect, url_for
 from flask_wtf import CSRFProtect, FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 import re
 import os
 from model import LogicaModelo
+from flask_wtf.csrf import generate_csrf
 
 app = Flask(__name__)
 # Configuración de seguridad para CSRF
@@ -123,6 +124,97 @@ def acerca_de():
 def leyes_logicas():
     """Muestra una página con la explicación de las leyes lógicas."""
     return render_template("leyes_logicas.html")
+
+# Añadir esta ruta para la nueva página "Símbolos -> Texto"
+@app.route('/simbolo_a_texto', methods=['GET', 'POST'])
+def simbolo_a_texto():
+    resultado = None
+    leyenda = None
+    error = None
+
+    if request.method == 'POST':
+        formula = request.form.get('formula', '').strip()
+        leyenda_text = request.form.get('legend', '').strip()
+
+        if not formula:
+            error = "Introduce una fórmula en símbolos."
+        else:
+            # Parsear leyenda si el usuario la proporcionó (formato: "P: Juan come...")
+            leyenda = {}
+            if leyenda_text:
+                for line in leyenda_text.splitlines():
+                    if ':' in line:
+                        k, v = line.split(':', 1)
+                        leyenda[k.strip()] = v.strip()
+
+            # Si no hay leyenda, generamos frases de ejemplo para las variables encontradas
+            import re
+            vars_found = sorted(set(re.findall(r'\b[A-Z]\b', formula)))
+            ejemplo_frases = [
+                "Juan come en el restaurante",
+                "María viste una camisa roja",
+                "Pedro estudia en la universidad",
+                "El equipo ganó el partido",
+                "La habitación está iluminada",
+                "El motor funciona correctamente",
+                "La puerta está cerrada",
+                "El correo fue enviado"
+            ]
+            for i, v in enumerate(vars_found):
+                if v not in leyenda:
+                    leyenda[v] = ejemplo_frases[i % len(ejemplo_frases)]
+
+            # Función simple para convertir fórmula simbólica a oración en español
+            def expr_to_text(expr):
+                expr = expr.strip()
+                # Negación: ¬X or ~X
+                expr = re.sub(r'¬\s*([A-Z])', lambda m: f"no {leyenda.get(m.group(1), m.group(1))}", expr)
+                expr = re.sub(r'~\s*([A-Z])', lambda m: f"no {leyenda.get(m.group(1), m.group(1))}", expr)
+                # Paréntesis: procesar recursivamente es complejo; se hace reemplazo simple
+                # Implicación: A → B  -> "Si A, entonces B"
+                if '→' in expr or '->' in expr:
+                    parts = re.split(r'\s*(?:→|->)\s*', expr, maxsplit=1)
+                    left = parts[0]
+                    right = parts[1] if len(parts) > 1 else ''
+                    left_text = expr_to_text(left)
+                    right_text = expr_to_text(right)
+                    return f"Si {left_text}, entonces {right_text}"
+                # Bicondicional
+                if '↔' in expr or '<->' in expr:
+                    parts = re.split(r'\s*(?:↔|<->)\s*', expr, maxsplit=1)
+                    a = expr_to_text(parts[0])
+                    b = expr_to_text(parts[1] if len(parts) > 1 else '')
+                    return f"{a} si y solo si {b}"
+                # Conjunción y Disyunción: manejar operadores binarios de forma lineal
+                # Reemplazar variables sueltas por su frase
+                # Primero reemplazar conjunción y disyunción por conectores en español
+                # Manejar conjunción
+                if '∧' in expr or '&' in expr:
+                    parts = re.split(r'\s*(?:∧|&)\s*', expr)
+                    parts_text = [expr_to_text(p) for p in parts]
+                    return ' y '.join(parts_text)
+                # Manejar disyunción
+                if '∨' in expr or 'v' in expr or '\\/' in expr:
+                    parts = re.split(r'\s*(?:∨|v|\\\/)\s*', expr)
+                    parts_text = [expr_to_text(p) for p in parts]
+                    return ' o '.join(parts_text)
+                # Si es solo una variable, devolver la frase de la leyenda
+                m = re.match(r'^\s*([A-Z])\s*$', expr)
+                if m:
+                    return leyenda.get(m.group(1), m.group(1))
+                # Si queda algo más complejo, intentar reemplazar variables dentro del texto
+                def replace_var(match):
+                    sym = match.group(0)
+                    return leyenda.get(sym, sym)
+                return re.sub(r'\b[A-Z]\b', replace_var, expr)
+
+            try:
+                resultado = expr_to_text(formula)
+            except Exception as e:
+                error = "No se pudo convertir la fórmula. Revisa la sintaxis."
+    # generar token CSRF y pasarlo a la plantilla
+    csrf_token = generate_csrf()
+    return render_template('simbolo_a_texto.html', resultado=resultado, leyenda=leyenda, error=error, csrf_token=csrf_token)
 
 if __name__ == "__main__":
     app.run(debug=True)

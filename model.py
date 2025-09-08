@@ -6,18 +6,95 @@ import requests # Usaremos la librería requests para hacer la llamada a la API 
 from dotenv import load_dotenv
 from sympy.logic.boolalg import truth_table
 from sympy import sympify, simplify_logic, symbols
+import time
+import hashlib
+import logging
+from threading import Lock
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+logger = logging.getLogger(__name__)
+
+class SimpleCache:
+    def __init__(self, maxsize=128, ttl=300):
+        self.maxsize = maxsize
+        self.ttl = ttl
+        self.store = {}
+        self.lock = Lock()
+
+    def _prune(self):
+        # remove expired entries, keep size under maxsize
+        now = time.time()
+        keys = list(self.store.keys())
+        for k in keys:
+            v, ts = self.store.get(k, (None, 0))
+            if now - ts > self.ttl:
+                self.store.pop(k, None)
+        if len(self.store) > self.maxsize:
+            # remove oldest
+            items = sorted(self.store.items(), key=lambda x: x[1][1])
+            for k, _ in items[: len(self.store) - self.maxsize]:
+                self.store.pop(k, None)
+
+    def get(self, key):
+        with self.lock:
+            self._prune()
+            val = self.store.get(key)
+            if val:
+                return val[0]
+            return None
+
+    def set(self, key, value):
+        with self.lock:
+            self.store[key] = (value, time.time())
+            self._prune()
 
 # --- Carga de la Clave de API ---
 # Carga las variables de entorno desde un archivo .env
 load_dotenv()
 API_KEY = os.environ.get("GOOGLE_API_KEY")
-API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={API_KEY}"
+# Mantener compatibilidad: si existe variable con URL completa en env, usarla
+ENV_API_URL = os.environ.get("GEMINI_API_URL")
+DEFAULT_API_URL = ENV_API_URL or f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent"
 
 class LogicaModelo:
-    def __init__(self):
-        """El constructor ahora está vacío. No necesitamos inicializar ningún modelo complejo."""
-        if not API_KEY and not os.environ.get("FLASK_RUN_FROM_CLI"): # Evita el mensaje durante los comandos de Flask
-            print("ADVERTENCIA: La clave de API de Google no se encontró en las variables de entorno.")
+    def __init__(self, api_base=None, api_key=None, *, max_workers=4, cache_ttl=300, cache_size=256, default_timeout=(5,20)):
+        """Constructor optimizado: session con retries, pool de hilos y caché en memoria."""
+        self.api_key = api_key or API_KEY
+        self.api_base = api_base or DEFAULT_API_URL
+
+        if not self.api_key and not os.environ.get("FLASK_RUN_FROM_CLI"):
+            logger.warning("ADVERTENCIA: La clave de API de Google no se encontró en las variables de entorno.")
+
+        # HTTP session with retries & connection pooling
+        self._session = requests.Session()
+        retries = Retry(
+            total=3,
+            backoff_factor=0.6,
+            status_forcelist=[429, 500, 502, 503, 504],
+            allowed_methods=frozenset(['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS']),
+            respect_retry_after_header=True
+        )
+        adapter = HTTPAdapter(pool_connections=10, pool_maxsize=20, max_retries=retries)
+        self._session.mount("https://", adapter)
+        self._session.mount("http://", adapter)
+
+        # Thread pool to avoid blocking main thread on slow API calls
+        self._executor = ThreadPoolExecutor(max_workers=max_workers)
+
+        # Simple in-memory cache for repeated prompts
+        self._cache = SimpleCache(maxsize=cache_size, ttl=cache_ttl)
+
+        # Default request timeout (connect, read)
+        self._timeout = default_timeout  # tuple (connect, read)
+
+        # Default generation config to reduce latency (ajustable)
+        self._default_generation_config = {
+            "maxOutputTokens": 512,
+            "temperature": 0.0,
+            "topP": 0.95
+        }
 
     def _get_system_prompt(self):
         """Define las instrucciones para el modelo de IA."""
@@ -144,73 +221,158 @@ class LogicaModelo:
         - Bicondicional: ↔
         """
 
-    def _call_gemini_api(self, full_prompt, expect_json_response=False):
+    def _cache_key(self, prompt, params):
+        key_raw = json.dumps({"p": prompt, "params": params}, sort_keys=True, ensure_ascii=False)
+        return hashlib.sha256(key_raw.encode("utf-8")).hexdigest()
+
+    def _extract_json_substring(self, text):
         """
-        Método auxiliar centralizado para realizar llamadas a la API de Gemini.
-        Maneja la construcción de la petición, la llamada HTTP y la gestión de errores comunes.
+        Busca y extrae el primer bloque JSON válido dentro de text.
+        Retorna el string JSON o lanza JSONDecodeError.
+        """
+        # Intento rápido: búsqueda de bloque que empieza en { y termina en matching }
+        start = text.find('{')
+        if start == -1:
+            raise json.JSONDecodeError("No JSON start", text, 0)
+        # Intentar encontrar el final buscando el cierre balanceado
+        depth = 0
+        for i in range(start, len(text)):
+            ch = text[i]
+            if ch == '{':
+                depth += 1
+            elif ch == '}':
+                depth -= 1
+                if depth == 0:
+                    candidate = text[start:i+1]
+                    # validar parseo
+                    json.loads(candidate)
+                    return candidate
+        # última posibilidad: buscar con regex un bloque grande de JSON
+        m = re.search(r'(\{[\s\S]*\})', text)
+        if m:
+            candidate = m.group(1)
+            json.loads(candidate)
+            return candidate
+        raise json.JSONDecodeError("No se pudo extraer JSON válido", text, 0)
 
-        Args:
-            full_prompt (str): El prompt completo a enviar al modelo.
-            expect_json_response (bool): Si es True, configura la API para que devuelva JSON.
+    def _send_gemini_request(self, payload, timeout=None):
+        """
+        Envia la petición a Gemini usando la session configurada.
+        Devuelve el diccionario (parsed JSON response_data) o lanza Exception.
+        """
+        timeout = timeout or self._timeout
+        headers = {"Content-Type": "application/json"}
+        params = {}
+        if self.api_key:
+            # La API soporta key en query param; usarlo por compatibilidad
+            params["key"] = self.api_key
 
-        Returns:
-            tuple: Una tupla (datos_dict, error_str).
-                   - datos_dict (dict): Los datos decodificados de JSON si la llamada es exitosa.
-                   - error_str (str): Un mensaje de error si ocurre algún problema.
+        resp = self._session.post(self.api_base, headers=headers, json=payload, params=params, timeout=timeout)
+        resp.raise_for_status()
+        return resp.json()
+
+    def _call_gemini_api(self, full_prompt, expect_json_response=False, generation_config_override=None, timeout_seconds=None):
+        """
+        Llama a Gemini de forma segura y devuelve (data_dict, error_str).
+        Esta versión usa la session con retries, extrae JSON dentro del texto si es necesario y aplica generación config.
         """
         try:
-            payload = {"contents": [{"parts": [{"text": full_prompt}]}]}
+            gen_cfg = dict(self._default_generation_config)
+            if generation_config_override:
+                gen_cfg.update(generation_config_override)
+
+            payload = {
+                "contents": [{"parts": [{"text": full_prompt}]}],
+                "generationConfig": gen_cfg
+            }
             if expect_json_response:
-                payload["generationConfig"] = {"responseMimeType": "application/json"}
+                # el mime-type ayuda al modelo a devolver JSON cuando está soportado
+                payload["generationConfig"]["responseMimeType"] = "application/json"
 
-            headers = {"Content-Type": "application/json"}
+            response_data = self._send_gemini_request(payload, timeout=(self._timeout[0], timeout_seconds or self._timeout[1]))
 
-            response = requests.post(API_URL, headers=headers, json=payload)
-            response.raise_for_status()
+            # structure: response_data['candidates'][0]['content']['parts'][0]['text']
+            candidates = response_data.get('candidates') or []
+            if not candidates:
+                error_info = response_data.get('promptFeedback') or response_data.get('validation') or 'Sin detalles adicionales.'
+                logger.warning("Respuesta vacía de Gemini: %s", error_info)
+                return None, "La IA devolvió una respuesta vacía o bloqueada."
 
-            response_data = response.json()
+            raw_text = candidates[0].get('content', {}).get('parts', [])[0].get('text', '')
+            if not raw_text:
+                logger.warning("Texto vacío en candidato de Gemini.")
+                return None, "La IA devolvió una respuesta sin contenido."
 
-            if 'candidates' not in response_data or not response_data['candidates']:
-                error_info = response_data.get('promptFeedback', 'Sin detalles adicionales.')
-                return None, f"La API devolvió una respuesta vacía o bloqueada. Causa: {error_info}"
-
-            json_text = response_data['candidates'][0]['content']['parts'][0]['text']
-            
-            # Limpieza adicional para el caso en que la IA no respete el mime-type y envuelva en markdown
-            if json_text.strip().startswith("```json"):
-                json_text = json_text.strip()[7:-3].strip()
-
-            data = json.loads(json_text)
-            return data, None
+            # Si el texto parece JSON limpio, parsear directo; si no, intentar extraer bloque JSON dentro del texto
+            try:
+                result = json.loads(raw_text)
+                return result, None
+            except (json.JSONDecodeError, ValueError):
+                try:
+                    json_sub = self._extract_json_substring(raw_text)
+                    result = json.loads(json_sub)
+                    return result, None
+                except (json.JSONDecodeError, ValueError) as jerr:
+                    logger.exception("Error al parsear JSON devuelto por Gemini: %s", jerr)
+                    return None, "La IA devolvió una respuesta en un formato inesperado. Inténtalo de nuevo."
 
         except requests.exceptions.HTTPError as http_err:
-            # Manejo de errores específico para sobrecarga de la API
-            if http_err.response.status_code in [429, 503]:
-                user_friendly_message = "La IA está recibiendo muchas solicitudes en este momento. Por favor, espera un momento y vuelve a intentarlo."
-                print(f"Error de sobrecarga de la API (código {http_err.response.status_code}): {user_friendly_message}")
-                return None, user_friendly_message
-
-            error_details = http_err.response.json()
-            api_message = error_details.get('error', {}).get('message', 'Error desconocido de la API.')
-            print(f"Error HTTP al llamar a la API: {http_err}\nDetalles: {api_message}")
-            return None, f"Error de la API de Gemini: {api_message}" # Mantenemos el mensaje original para otros errores HTTP
-        except (json.JSONDecodeError, ValueError) as json_err:
-            print(f"Error al decodificar JSON de la API: {json_err}")
-            return None, "La IA devolvió una respuesta en un formato inesperado. Inténtalo de nuevo."
+            status = getattr(http_err.response, "status_code", None)
+            logger.exception("HTTP error calling Gemini: %s", http_err)
+            if status in (429, 503):
+                msg = "La IA está recibiendo muchas solicitudes en este momento. Por favor, espera y vuelve a intentarlo."
+                return None, msg
+            try:
+                error_details = http_err.response.json()
+                api_message = error_details.get('error', {}).get('message', str(http_err))
+            except Exception:
+                api_message = str(http_err)
+            return None, f"Error de la API de Gemini: {api_message}"
         except Exception as e:
-            print(f"Error inesperado al llamar a la API: {e}")
+            logger.exception("Error inesperado al llamar a Gemini: %s", e)
             return None, f"No se pudo procesar la petición con la IA. Error: {e}"
 
-    def procesar_con_ia(self, texto):
+    def _request_with_cache_and_timeout(self, prompt, expect_json_response=False, timeout_seconds=20, use_cache=True, generation_config_override=None):
+        """
+        Coordinador: verifica caché, ejecuta la llamada en un hilo y aplica timeout.
+        Retorna (data, error)
+        """
+        cache_key = self._cache_key(prompt, {"json": expect_json_response, "gen_cfg": generation_config_override or {}})
+        if use_cache:
+            cached = self._cache.get(cache_key)
+            if cached is not None:
+                logger.debug("Cache hit para prompt")
+                return cached, None
+
+        future = self._executor.submit(self._call_gemini_api, prompt, expect_json_response, generation_config_override, timeout_seconds)
+        try:
+            data, error = future.result(timeout=timeout_seconds + 2)  # pequeño margen
+        except FutureTimeoutError:
+            future.cancel()
+            logger.warning("Llamada a IA excedió timeout de %s s", timeout_seconds)
+            return None, f"Tiempo de espera agotado ({timeout_seconds}s) al consultar la IA."
+        except Exception as e:
+            logger.exception("Error en ejecución de hilo para llamada IA: %s", e)
+            return None, f"Error interno al consultar la IA: {e}"
+
+        if data is not None and use_cache:
+            try:
+                self._cache.set(cache_key, data)
+            except Exception:
+                logger.exception("Fallo al escribir en cache")
+
+        return data, error
+
+    def procesar_con_ia(self, texto, timeout_seconds=18, use_cache=True):
         """
         Usa un modelo de IA para procesar el texto.
         Devuelve: (formula_visual, leyenda, error)
         """
-        if not API_KEY:
+        if not self.api_key:
             return None, None, "Error de configuración: La clave de API de Google no está definida."
 
         full_prompt = self._get_system_prompt() + "\nOración: \"" + texto + "\"\nRespuesta JSON:"
-        data, error = self._call_gemini_api(full_prompt, expect_json_response=False)
+        data, error = self._request_with_cache_and_timeout(full_prompt, expect_json_response=True, timeout_seconds=timeout_seconds, use_cache=use_cache)
 
         if error:
             return None, None, error
@@ -223,16 +385,16 @@ class LogicaModelo:
 
         return formula, leyenda, None
 
-    def generar_tabla_verdad(self, formula_str):
+    def generar_tabla_verdad(self, formula_str, timeout_seconds=22, use_cache=True):
         """
         Genera una tabla de verdad para una fórmula simbólica dada usando IA.
         Devuelve: (header, rows, clasificacion, error)
         """
-        if not API_KEY:
+        if not self.api_key:
             return None, None, None, "Error de configuración: La clave de API de Google no está definida."
 
         full_prompt = self._get_truth_table_prompt() + "\nFórmula: \"" + formula_str + "\"\nRespuesta JSON:"
-        data, error = self._call_gemini_api(full_prompt, expect_json_response=True)
+        data, error = self._request_with_cache_and_timeout(full_prompt, expect_json_response=True, timeout_seconds=timeout_seconds, use_cache=use_cache)
 
         if error:
             return None, None, None, error
@@ -241,21 +403,21 @@ class LogicaModelo:
         rows = data.get("rows")
         clasificacion = data.get("clasificacion")
 
-        if not all([header, rows, clasificacion is not None]):
+        if header is None or rows is None or clasificacion is None:
             return None, None, None, "La respuesta de la IA no tuvo el formato esperado para la tabla de verdad."
 
         return header, rows, clasificacion, None
 
-    def simplificar_formula(self, formula_str):
+    def simplificar_formula(self, formula_str, timeout_seconds=20, use_cache=True):
         """
         Simplifica una fórmula lógica usando IA.
         Devuelve: (pasos, formula_simplificada, error)
         """
-        if not API_KEY:
+        if not self.api_key:
             return None, None, "Error de configuración: La clave de API de Google no está definida."
 
         full_prompt = self._get_simplification_prompt() + "\nFórmula: \"" + formula_str + "\"\nRespuesta JSON:"
-        data, error = self._call_gemini_api(full_prompt, expect_json_response=True)
+        data, error = self._request_with_cache_and_timeout(full_prompt, expect_json_response=True, timeout_seconds=timeout_seconds, use_cache=use_cache)
 
         if error:
             return None, None, error
@@ -267,3 +429,47 @@ class LogicaModelo:
             return None, None, "La respuesta de la IA no tuvo el formato esperado para la simplificación."
 
         return pasos, formula_simplificada, None
+
+    def get_response(self, prompt, params=None, *, timeout_seconds=25, use_cache=True):
+        """
+        Método genérico público compatible con el anterior: mantiene compatibilidad.
+        """
+        params = params or {}
+        cache_key = self._cache_key(prompt, params)
+
+        if use_cache:
+            cached = self._cache.get(cache_key)
+            if cached is not None:
+                logger.debug("Cache hit for prompt")
+                return cached
+
+        future = self._executor.submit(self._call_gemini_api, prompt, False, None, timeout_seconds)
+        try:
+            result, error = future.result(timeout=timeout_seconds + 2)
+        except FutureTimeoutError:
+            future.cancel()
+            logger.warning("AI call timed out after %s seconds", timeout_seconds)
+            raise TimeoutError(f"AI call timed out after {timeout_seconds}s")
+        except Exception as e:
+            logger.exception("AI call raised an exception")
+            raise
+
+        if error:
+            logger.warning("AI returned error: %s", error)
+            raise RuntimeError(error)
+
+        if use_cache and result is not None:
+            try:
+                self._cache.set(cache_key, result)
+            except Exception:
+                logger.exception("Failed to set cache")
+
+        return result
+
+    # Optionally add a graceful shutdown helper
+    def shutdown(self):
+        try:
+            self._executor.shutdown(wait=False)
+            self._session.close()
+        except Exception:
+            pass

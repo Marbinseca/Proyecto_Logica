@@ -13,14 +13,25 @@
     <div class="card p-4 mx-auto" style="max-width: 800px;">
         <h1 class="mb-4">Intérprete de Lógica Proposicional</h1>
         <p>Escribe tu proposición en texto para ver su forma simbólica.</p>
+
         <form id="conversor-form" action="{{ url_for('index') }}" method="post" class="mb-4" novalidate>
-            {{ form.hidden_tag() }} {# ¡IMPORTANTE! Añade el token CSRF #}
+            {{ form.hidden_tag() }}
             <div class="input-group mb-3">
-                {{ form.proposicion(class="form-control", placeholder="Ej: no vi la película pero leí la novela", id="formula-input", **{'aria-label': 'Campo de entrada para la proposición en texto'}) }}
+                {{ form.proposicion(class="form-control", placeholder="Ej: no vi la película pero leí la novela", id="formula-input", **{'aria-label': 'Campo de entrada para la proposición en texto', 'data-default-target': 'true'}) }}
                 <button class="btn btn-outline-secondary btn-limpiar" type="button" title="Limpiar campo"><i class="bi bi-x-lg" aria-hidden="true"></i><span class="visually-hidden">Limpiar</span></button>
                 {{ form.submit(class="btn btn-primary", id="convertir-btn") }}
             </div>
         </form>
+
+        <!-- Contenedor de símbolos para la lógica proposicional -->
+        <div class="symbol-container" aria-label="Tabla de símbolos">
+          <button type="button" class="symbol-button btn btn-light" data-symbol="¬" title="Negación">¬</button>
+          <button type="button" class="symbol-button btn btn-light" data-symbol="∧" title="Conjunción">∧</button>
+          <button type="button" class="symbol-button btn btn-light" data-symbol="∨" title="Disyunción">∨</button>
+          <button type="button" class="symbol-button btn btn-light" data-symbol="→" title="Condicional">→</button>
+          <button type="button" class="symbol-button btn btn-light" data-symbol="↔" title="Bicondicional">↔</button>
+          <button type="button" class="symbol-button btn btn-light" data-symbol="⊕" title="Disyunción exclusiva">⊕</button>
+        </div>
 
         {% if resultado or leyenda or error %}
             <div class="mt-4" aria-live="polite">
@@ -55,7 +66,6 @@
                 {% endif %}
             </div>
         {% else %}
-            <!-- Sección de Bienvenida (Visible al cargar la página por primera vez) -->
             <div class="mt-4">
                 <img src="{{ url_for('static', filename='images/logic_symbols.png') }}" class="img-fluid rounded mb-4" alt="Símbolos de Lógica Proposicional" style="max-width: 400px; background-color: rgba(255,255,255,0.9); padding: 1rem; border: 1px solid rgba(255, 255, 255, 0.2);">
                 <p class="lead">Introduce una proposición en el campo de arriba para comenzar.</p>
@@ -63,4 +73,7 @@
         {% endif %}
     </div>
 </div>
+
+{# Incluir el script que hace funcionales los botones de símbolo #}
+<script src="{{ url_for('static', filename='js/symbol_inserter.js') }}"></script>
 {% endblock %}

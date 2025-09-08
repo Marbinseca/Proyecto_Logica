@@ -22,16 +22,14 @@
             </div>
         </form>
 
-        <div class="mb-4">
-            <div class="d-flex justify-content-center flex-wrap gap-2">
-                <button type="button" class="btn btn-sm btn-outline-light symbol-btn" data-symbol="∧">∧ (y)</button>
-                <button type="button" class="btn btn-sm btn-outline-light symbol-btn" data-symbol="∨">∨ (o)</button>
-                <button type="button" class="btn btn-sm btn-outline-light symbol-btn" data-symbol="¬">¬ (no)</button>
-                <button type="button" class="btn btn-sm btn-outline-light symbol-btn" data-symbol="→">→ (entonces)</button>
-                <button type="button" class="btn btn-sm btn-outline-light symbol-btn" data-symbol="↔">↔ (si y solo si)</button>
-                <button type="button" class="btn btn-sm btn-outline-light symbol-btn" data-symbol="(">(</button>
-                <button type="button" class="btn btn-sm btn-outline-light symbol-btn" data-symbol=")">)</button>
-            </div>
+        <!-- Añadir la tabla de símbolos reutilizable -->
+        <div class="symbol-container" aria-label="Tabla de símbolos">
+          <button type="button" class="symbol-button btn btn-light" data-symbol="¬" title="Negación">¬</button>
+          <button type="button" class="symbol-button btn btn-light" data-symbol="∧" title="Conjunción">∧</button>
+          <button type="button" class="symbol-button btn btn-light" data-symbol="∨" title="Disyunción">∨</button>
+          <button type="button" class="symbol-button btn btn-light" data-symbol="→" title="Condicional">→</button>
+          <button type="button" class="symbol-button btn btn-light" data-symbol="↔" title="Bicondicional">↔</button>
+          <button type="button" class="symbol-button btn btn-light" data-symbol="⊕" title="Disyunción exclusiva">⊕</button>
         </div>
 
         {% if tabla_header and tabla_rows %}
@@ -80,4 +78,6 @@
         {% endif %}
     </div>
 </div>
+
+<script src="{{ url_for('static', filename='js/symbol_inserter.js') }}"></script>
 {% endblock %}

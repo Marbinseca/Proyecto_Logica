@@ -1,27 +1,3 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const formulaInput = document.getElementById('formula-input');
-    if (!formulaInput) return; // Salir si no se encuentra el input
-
-    const symbolButtons = document.querySelectorAll('.symbol-btn');
-
-    symbolButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const symbol = this.dataset.symbol;
-            const startPos = formulaInput.selectionStart;
-            const endPos = formulaInput.selectionEnd;
-            const currentValue = formulaInput.value;
-
-            // Insertar el símbolo en la posición del cursor
-            formulaInput.value = currentValue.substring(0, startPos) + symbol + currentValue.substring(endPos);
-
-            // Mover el cursor a después del símbolo insertado
-            formulaInput.focus();
-            const newCursorPos = startPos + symbol.length;
-            formulaInput.setSelectionRange(newCursorPos, newCursorPos);
-        });
-    });
-});
-
 (function () {
   "use strict";
 
@@ -34,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function setLastFocused(e) {
     const t = e.target;
-    if (isTextInput(t) || t.isContentEditable) {
+    if (isTextInput(t) || (t && t.isContentEditable)) {
       lastFocused = t;
     }
   }
@@ -56,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
       try {
         const start = el.selectionStart ?? el.value.length;
         const end = el.selectionEnd ?? start;
-        const v = el.value;
+        const v = el.value || "";
         el.value = v.slice(0, start) + text + v.slice(end);
         const pos = start + text.length;
         el.setSelectionRange(pos, pos);
@@ -71,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // contenteditable
-    if (el.isContentEditable) {
+    if (el && el.isContentEditable) {
       const sel = window.getSelection();
       if (!sel) {
         el.textContent = (el.textContent || '') + text;
@@ -111,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Priorizar data-symbol; si no existe, tomar texto interno
     let symbol = btn.getAttribute('data-symbol') || btn.dataset.symbol || btn.textContent || '';
-    symbol = symbol.trim();
+    symbol = (symbol || '').trim();
     if (!symbol) return;
 
     // Si el boton indica un target específico
@@ -131,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
     insertAtCursor(targetEl, symbol);
   }
 
-  // permitir activar con Enter/Space
+  // permitir activar con Enter/Space para accesibilidad
   function onDocumentKeydown(e) {
     const btn = e.target.closest && e.target.closest('.symbol-button, [data-symbol]');
     if (!btn) return;

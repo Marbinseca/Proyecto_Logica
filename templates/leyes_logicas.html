@@ -36,7 +36,7 @@
     <div class="card p-4 mx-auto" style="max-width: 900px;">
         <h1 class="mb-4 text-center">Guía de Leyes Lógicas</h1>
         <p class="lead text-center mb-5">
-            Estas son las principales leyes de equivalencia lógica que se utilizan para simplificar expresiones proposicionales.
+            Estas son las principales leyes de equivalencia lógica y reglas de inferencia que se utilizan para manipular y simplificar expresiones proposicionales.
         </p>
 
         <div class="accordion" id="leyesAccordion">
@@ -48,7 +48,7 @@
                 </h2>
                 <div id="collapseDeMorgan" class="accordion-collapse collapse" data-bs-parent="#leyesAccordion">
                     <div class="accordion-body" role="region" aria-labelledby="headingDeMorgan">
-                        <p>Permiten transformar la negación de una conjunción en una disyunción de negaciones, y viceversa.</p>
+                        <p>Transforman la negación de una conjunción en la disyunción de negaciones, y viceversa.</p>
                         <ul>
                             <li><code>¬(P ∧ Q) ≡ ¬P ∨ ¬Q</code></li>
                             <li><code>¬(P ∨ Q) ≡ ¬P ∧ ¬Q</code></li>
@@ -80,7 +80,7 @@
                 </h2>
                 <div id="collapseAsociativa" class="accordion-collapse collapse" data-bs-parent="#leyesAccordion">
                     <div class="accordion-body" role="region" aria-labelledby="headingAsociativa">
-                        <p>Permiten reagrupar proposiciones cuando el conector es el mismo.</p>
+                        <p>Reagrupar proposiciones cuando el conector es el mismo.</p>
                         <ul>
                             <li><code>(P ∧ Q) ∧ R ≡ P ∧ (Q ∧ R)</code></li>
                             <li><code>(P ∨ Q) ∨ R ≡ P ∨ (Q ∨ R)</code></li>
@@ -127,7 +127,7 @@
                 </h2>
                 <div id="collapseIdentidadNegacion" class="accordion-collapse collapse" data-bs-parent="#leyesAccordion">
                     <div class="accordion-body" role="region" aria-labelledby="headingIdentidadNegacion">
-                        <p>Estas leyes definen cómo interactúan las proposiciones con las constantes Verdadero (V) y Falso (F).</p>
+                        <p>Interactúan las proposiciones con las constantes Verdadero (V) y Falso (F).</p>
                         <ul>
                             <li><code>P ∧ V ≡ P</code> (Identidad)</li>
                             <li><code>P ∨ F ≡ P</code> (Identidad)</li>
@@ -140,7 +140,166 @@
                 </div>
             </div>
 
+            <!-- Reglas de Inferencia: Modus Ponens -->
+            <div class="accordion-item bg-transparent text-white">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseModusPonens" aria-expanded="false" aria-controls="collapseModusPonens">Modus Ponens (Ponendo Ponens)</button>
+                </h2>
+                <div id="collapseModusPonens" class="accordion-collapse collapse" data-bs-parent="#leyesAccordion">
+                    <div class="accordion-body" role="region" aria-labelledby="headingModusPonens">
+                        <p>Si P → Q y P, entonces Q. Regla básica de deducción.</p>
+                        <ul>
+                            <li><code>P → Q, P ⊢ Q</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modus Tollens -->
+            <div class="accordion-item bg-transparent text-white">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseModusTollens" aria-expanded="false" aria-controls="collapseModusTollens">Modus Tollens (Tollendo Tollens)</button>
+                </h2>
+                <div id="collapseModusTollens" class="accordion-collapse collapse" data-bs-parent="#leyesAccordion">
+                    <div class="accordion-body" role="region" aria-labelledby="headingModusTollens">
+                        <p>Si P → Q y ¬Q, entonces ¬P.</p>
+                        <ul>
+                            <li><code>P → Q, ¬Q ⊢ ¬P</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hypothetical Syllogism -->
+            <div class="accordion-item bg-transparent text-white">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseHypothetical" aria-expanded="false" aria-controls="collapseHypothetical">Silogismo Hipotético (Hypothetical Syllogism)</button>
+                </h2>
+                <div id="collapseHypothetical" class="accordion-collapse collapse" data-bs-parent="#leyesAccordion">
+                    <div class="accordion-body" role="region" aria-labelledby="headingHypothetical">
+                        <p>Encadena condicionales.</p>
+                        <ul>
+                            <li><code>P → Q, Q → R ⊢ P → R</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Disjunctive Syllogism -->
+            <div class="accordion-item bg-transparent text-white">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDisjunctive" aria-expanded="false" aria-controls="collapseDisjunctive">Silogismo Disyuntivo (Disjunctive Syllogism)</button>
+                </h2>
+                <div id="collapseDisjunctive" class="accordion-collapse collapse" data-bs-parent="#leyesAccordion">
+                    <div class="accordion-body" role="region" aria-labelledby="headingDisjunctive">
+                        <p>Si P ∨ Q y ¬P, entonces Q.</p>
+                        <ul>
+                            <li><code>P ∨ Q, ¬P ⊢ Q</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Constructive and Destructive Dilemma -->
+            <div class="accordion-item bg-transparent text-white">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDilemma" aria-expanded="false" aria-controls="collapseDilemma">Dilemas (Constructive / Destructive)</button>
+                </h2>
+                <div id="collapseDilemma" class="accordion-collapse collapse" data-bs-parent="#leyesAccordion">
+                    <div class="accordion-body" role="region" aria-labelledby="headingDilemma">
+                        <p>Formas de inferencia basadas en disyunciones y condicionales.</p>
+                        <ul>
+                            <li>Constructive Dilemma: <code>(P → Q) ∧ (R → S), P ∨ R ⊢ Q ∨ S</code></li>
+                            <li>Destructive Dilemma: <code>(P → Q) ∧ (R → S), ¬Q ∨ ¬S ⊢ ¬P ∨ ¬R</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Addition, Simplification, Conjunction -->
+            <div class="accordion-item bg-transparent text-white">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBasicRules" aria-expanded="false" aria-controls="collapseBasicRules">Reglas básicas: Adición, Simplificación, Conjunción</button>
+                </h2>
+                <div id="collapseBasicRules" class="accordion-collapse collapse" data-bs-parent="#leyesAccordion">
+                    <div class="accordion-body" role="region" aria-labelledby="headingBasicRules">
+                        <ul>
+                            <li>Addition: <code>P ⊢ P ∨ Q</code></li>
+                            <li>Simplification: <code>P ∧ Q ⊢ P</code> (y también ⊢ Q)</li>
+                            <li>Conjunction: <code>P, Q ⊢ P ∧ Q</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resolution -->
+            <div class="accordion-item bg-transparent text-white">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseResolution" aria-expanded="false" aria-controls="collapseResolution">Resolución</button>
+                </h2>
+                <div id="collapseResolution" class="accordion-collapse collapse" data-bs-parent="#leyesAccordion">
+                    <div class="accordion-body" role="region" aria-labelledby="headingResolution">
+                        <p>Método fundamental en demostraciones y pruebas automáticas (forma clausal).</p>
+                        <ul>
+                            <li>De <code>(P ∨ Q)</code> y <code>(¬Q ∨ R)</code> se deduce <code>(P ∨ R)</code>.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Absorption, Exportation, Contraposition -->
+            <div class="accordion-item bg-transparent text-white">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMetaRules" aria-expanded="false" aria-controls="collapseMetaRules">Absorción, Exportación, Contraposición</button>
+                </h2>
+                <div id="collapseMetaRules" class="accordion-collapse collapse" data-bs-parent="#leyesAccordion">
+                    <div class="accordion-body" role="region" aria-labelledby="headingMetaRules">
+                        <ul>
+                            <li>Absorción: <code>P ∨ (P ∧ Q) ≡ P</code></li>
+                            <li>Exportación: <code>(P ∧ Q) → R ≡ P → (Q → R)</code></li>
+                            <li>Contraposición: <code>P → Q ≡ ¬Q → ¬P</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Biconditional rules -->
+            <div class="accordion-item bg-transparent text-white">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBiconditional" aria-expanded="false" aria-controls="collapseBiconditional">Bicondicional (↔)</button>
+                </h2>
+                <div id="collapseBiconditional" class="accordion-collapse collapse" data-bs-parent="#leyesAccordion">
+                    <div class="accordion-body" role="region" aria-labelledby="headingBiconditional">
+                        <p>Equivalencias y transformaciones con bicondicional.</p>
+                        <ul>
+                            <li><code>P ↔ Q ≡ (P → Q) ∧ (Q → P)</code></li>
+                            <li>Eliminación: <code>P ↔ Q ⊢ P → Q</code> y <code>P ↔ Q ⊢ Q → P</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reglas adicionales comunes -->
+            <div class="accordion-item bg-transparent text-white">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAdditional" aria-expanded="false" aria-controls="collapseAdditional">Otras reglas comunes</button>
+                </h2>
+                <div id="collapseAdditional" class="accordion-collapse collapse" data-bs-parent="#leyesAccordion">
+                    <div class="accordion-body" role="region" aria-labelledby="headingAdditional">
+                        <ul>
+                            <li>Exportación/Importación (ya vista): <code>(P ∧ Q) → R ≡ P → (Q → R)</code></li>
+                            <li>Reductio ad absurdum / prueba por contradicción: <code>¬P ⊢ (contradicción) ⇒ P</code></li>
+                            <li>Contradicción: <code>P ∧ ¬P ⊢ false</code></li>
+                            <li>Equivalencia con formas normales: Conversiones a FND / FNC</li>
+                        </ul>
+                        <p class="text-muted small">Nota: muchas reglas de inferencia y transformaciones tienen variantes y nombres históricos (ej. Ponens/Tollens, Modus Ponens/Modus Tollens). La lista anterior incluye las más usadas en lógica proposicional y en demostración automática.</p>
+                    </div>
+                </div>
+            </div>
+
         </div>
-    </div>
-</div>
+
+     </div>
+ </div>
+ <!-- no incluir el script aquí: plantilla de solo lectura -->
 {% endblock %}

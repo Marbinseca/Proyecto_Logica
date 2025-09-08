@@ -1,35 +1,64 @@
 {% extends "base.html" %}
 
-{% block title %}Acerca de | Analizador Lógico{% endblock %}
+{% block title %}Acerca de | Proyecto Lógica{% endblock %}
 
 {% block head %}
-    <meta name="description" content="Conoce más sobre el Analizador Lógico, una herramienta para interpretar, generar tablas de verdad y simplificar fórmulas de lógica proposicional.">
+  <meta name="description" content="Información sobre la aplicación Proyecto_Logica: objetivos, componentes y configuración.">
+  <style>
+    .info-card { max-width: 900px; margin: 0 auto; }
+    .meta-list dt { font-weight: 600; }
+    .meta-list dd { margin-bottom: .75rem; }
+    code.kv { background: rgba(0,0,0,0.12); padding: .15rem .4rem; border-radius: .25rem; }
+  </style>
 {% endblock %}
 
-{% block background_image %}url('https://source.unsplash.com/random/1920x1080?library,books'){% endblock %}
+{% block background_image %}url('https://source.unsplash.com/random/1920x1080?logic,code'){% endblock %}
 
 {% block content %}
 <div class="container">
-    <div class="card p-4 mx-auto" style="max-width: 800px;">
-        <h1 class="mb-4 text-center">Acerca del Analizador Lógico</h1>
-        <div class="text-start">
-            <p class="lead">Esta aplicación es una herramienta educativa diseñada para ayudar a estudiantes y entusiastas de la lógica a trabajar con lógica proposicional de una manera interactiva y visual.</p>
-            
-            <h4 class="mt-4">Características Principales</h4>
-            <ul>
-                <li><strong>Intérprete Proposicional:</strong> Convierte oraciones en lenguaje natural a su forma simbólica utilizando un modelo de IA (Google Gemini) para interpretar la semántica.</li>
-                <li><strong>Generador de Tablas de Verdad:</strong> Crea tablas de verdad completas para cualquier fórmula simbólica, clasificándola como tautología, contradicción o contingencia.</li>
-                <li><strong>Simplificador de Fórmulas:</strong> Reduce expresiones lógicas complejas a su forma más simple aplicando las leyes del álgebra booleana.</li>
-            </ul>
+  <div class="card p-4 mx-auto info-card">
+    <h1 class="mb-3">Acerca de Proyecto_Logica</h1>
 
-            <h4 class="mt-4">Tecnologías Utilizadas</h4>
-            <p>El proyecto está construido con un stack de tecnologías moderno y robusto:</p>
-            <ul>
-                <li><strong>Backend:</strong> Python con el micro-framework Flask.</li>
-                <li><strong>Inteligencia Artificial:</strong> La API de Google Gemini (modelo Flash) para todas las operaciones lógicas: interpretación de lenguaje natural, generación de tablas de verdad y simplificación de fórmulas.</li>
-                <li><strong>Frontend:</strong> HTML, CSS y JavaScript, con el framework Bootstrap 5 para un diseño responsivo y moderno.</li>
-            </ul>
-        </div>
-    </div>
+    <p class="lead">Proyecto_Logica es una herramienta educativa que ayuda a transformar enunciados en lenguaje natural a fórmulas de lógica proposicional, generar tablas de verdad, simplificar expresiones y verificar equivalencias. Está pensada para estudiantes y docentes que quieran practicar y entender paso a paso la lógica formal.</p>
+
+    <dl class="row meta-list">
+      <dt class="col-sm-4">Qué hace</dt>
+      <dd class="col-sm-8">
+        Convierte oraciones a notación lógica, muestra la leyenda de proposiciones, permite generar tablas de verdad y ofrece herramientas para simplificar y comparar fórmulas.
+      </dd>
+
+      <dt class="col-sm-4">Para quién</dt>
+      <dd class="col-sm-8">
+        Estudiantes de lógica, docentes y cualquier persona interesada en aprender o verificar razonamientos formales de forma interactiva.
+      </dd>
+
+      <dt class="col-sm-4">Características principales</dt>
+      <dd class="col-sm-8">
+        - Interfaz sencilla e intuitiva. <br>
+        - Inserción rápida de símbolos lógicos en páginas editables. <br>
+        - Generación de tablas de verdad y simplificación de fórmulas. <br>
+        - Página de referencia con leyes y reglas comunes.
+      </dd>
+
+      <dt class="col-sm-4">Cómo usarlo</dt>
+      <dd class="col-sm-8">
+        Escribe una proposición en el cuadro correspondiente y pulsa convertir. Para fórmulas ya escritas puedes generar su tabla de verdad o simplificarlas usando los botones disponibles.
+      </dd>
+
+      <dt class="col-sm-4">Privacidad y datos</dt>
+      <dd class="col-sm-8">
+        El proyecto puede usar servicios de terceros para procesar peticiones avanzadas. No se almacenan datos personales de forma permanente en la interfaz pública; revisa la configuración del servidor para detalles sobre almacenamiento y claves de API.
+      </dd>
+
+      <dt class="col-sm-4">Soporte y contribuciones</dt>
+      <dd class="col-sm-8">
+        Para ajustes o mejoras revisa los archivos del proyecto en el repositorio local. Comentarios y contribuciones son bienvenidos para mejorar la experiencia y la exactitud de las herramientas.
+      </dd>
+    </dl>
+
+    <hr>
+
+    <p class="small text-muted mb-0">Versión local del proyecto. Para cambios técnicos revisa los archivos de configuración y la documentación interna.</p>
+  </div>
 </div>
 {% endblock %}

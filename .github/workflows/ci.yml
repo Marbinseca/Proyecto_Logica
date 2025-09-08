@@ -36,7 +36,8 @@ jobs:
     # 4. Ejecuta las pruebas con pytest
     - name: Run tests
       run: |
-        # Las pruebas simulan la API, pero el código puede intentar leer la clave al importarse.
-        # Creamos un archivo .env falso para evitar errores durante la ejecución de las pruebas.
-        echo "GOOGLE_API_KEY=dummy_key_for_ci" > .env
         pytest
+      env:
+        # Pasa la clave de API desde los Secrets de GitHub como una variable de entorno
+        # para el paso de prueba. load_dotenv() en el script la leerá.
+        GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}

@@ -1,0 +1,8 @@
+Flask
+requests
+python-dotenv
+sympy
+pytest
+Flask-WTF
+WTForms
+google-generativeai

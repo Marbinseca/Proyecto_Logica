@@ -1,0 +1,18 @@
+# Archivos de entorno virtual
+# Evita subir las librerías instaladas.
+venv/
+.venv/
+env/
+ENV/
+
+# Archivos de secretos
+# ¡MUY IMPORTANTE! Evita subir tu clave de API.
+.env
+
+# Archivos de caché de Python
+__pycache__/
+*.pyc
+
+# Archivos específicos del sistema operativo
+.DS_Store
+Thumbs.db

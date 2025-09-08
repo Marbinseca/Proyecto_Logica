@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Simplificador de Fórmulas Lógicas{% endblock %}
+
+{% block head %}
+    <meta name="description" content="Simplifica expresiones lógicas complejas a su forma más simple utilizando las leyes del álgebra booleana. Introduce tu fórmula y obtén el resultado al instante.">
+{% endblock %}
+
+{% block background_image %}url('https://source.unsplash.com/random/1920x1080?abstract-math'){% endblock %}
+
+{% block content %}
+<div class="container text-center">
+    <div class="card p-4 mx-auto" style="max-width: 800px;">
+        <h1 class="mb-4">Simplificador de Fórmulas Lógicas</h1>
+        <p>Escribe una fórmula simbólica para simplificarla usando leyes de equivalencia.</p>
+        <form action="{{ url_for('simplificar') }}" method="post" class="mb-4" novalidate>
+            {{ form.hidden_tag() }} {# ¡IMPORTANTE! Añade el token CSRF #}
+            <div class="input-group mb-3">
+                {{ form.formula(class="form-control", id="formula-input", placeholder="Ej: (P ∧ Q) ∨ (P ∧ ¬Q)", value=formula_input or '') }}
+                <button class="btn btn-outline-secondary btn-limpiar" type="button" title="Limpiar campo"><i class="bi bi-x-lg" aria-hidden="true"></i><span class="visually-hidden">Limpiar</span></button>
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+
+        <p class="text-white-50 mb-4">
+            ¿No estás seguro de las reglas? Consulta nuestra <a href="{{ url_for('leyes_logicas') }}" class="text-white">guía de leyes lógicas</a>.
+        </p>
+
+        <div class="mb-4">
+            <div class="d-flex justify-content-center flex-wrap gap-2">
+                <button type="button" class="btn btn-sm btn-outline-light symbol-btn" data-symbol="∧">∧ (y)</button>
+                <button type="button" class="btn btn-sm btn-outline-light symbol-btn" data-symbol="∨">∨ (o)</button>
+                <button type="button" class="btn btn-sm btn-outline-light symbol-btn" data-symbol="¬">¬ (no)</button>
+                <button type="button" class="btn btn-sm btn-outline-light symbol-btn" data-symbol="→">→ (entonces)</button>
+                <button type="button" class="btn btn-sm btn-outline-light symbol-btn" data-symbol="↔">↔ (si y solo si)</button>
+                <button type="button" class="btn btn-sm btn-outline-light symbol-btn" data-symbol="(">(</button>
+                <button type="button" class="btn btn-sm btn-outline-light symbol-btn" data-symbol=")">)</button>
+            </div>
+        </div>
+
+        {% if pasos and formula_simplificada %}
+        <div class="mt-4 text-start" aria-live="polite">
+            <h3>Resultado</h3>
+            <p class="text-white-50">Fórmula Original:</p>
+            <div class="border p-3 mb-3 result-box bg-dark bg-opacity-25">{{ formula_input }}</div>
+            
+            <h4 class="mt-4">Pasos de Simplificación</h4>
+            <ul class="step-list">
+                {% for paso in pasos %}
+                    <li class="step-item p-3 mb-2 rounded">
+                        <span class="result-box flex-grow-1">{{ paso.formula }}</span>
+                        <span class="badge bg-secondary ms-3">{{ paso.regla }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <p class="text-white-50 mt-4">Fórmula Simplificada Final:</p>
+            <div class="border p-3 result-box bg-success bg-opacity-25 copy-to-clipboard" data-bs-toggle="tooltip" data-bs-placement="top" title="Copiar al portapapeles" role="button" tabindex="0">{{ formula_simplificada }}</div>
+        </div>
+        {% endif %}
+
+        {% if error %}
+            <div class="alert alert-danger mt-4" role="alert">{{ error }}</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

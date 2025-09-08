@@ -1,0 +1,6 @@
+# Permite a todos los crawlers (user-agents) acceder a todo el sitio.
+User-agent: *
+Allow: /
+
+# Opcional: Especifica la ubicación del sitemap si tuvieras uno.
+# Sitemap: https://www.tu-dominio.com/sitemap.xml

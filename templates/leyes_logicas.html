@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Leyes de Lógica Proposicional | Analizador Lógico{% endblock %}
+
+{% block head %}
+    <meta name="description" content="Aprende sobre las leyes de equivalencia lógica utilizadas en el álgebra booleana, como las Leyes de De Morgan, Distributiva, Asociativa y más.">
+    <style>
+        .accordion-button {
+            background-color: rgba(0, 0, 0, 0.3) !important;
+            color: white !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .accordion-button:not(.collapsed) {
+            background-color: rgba(0, 123, 255, 0.3) !important;
+        }
+        .accordion-item {
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }
+        .accordion-body {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        .accordion-body code {
+            color: #ffc107;
+            background-color: rgba(0,0,0,0.4);
+            padding: .2em .4em;
+            border-radius: .25rem;
+        }
+    </style>
+{% endblock %}
+
+{% block background_image %}url('https://source.unsplash.com/random/1920x1080?library,bookshelf'){% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card p-4 mx-auto" style="max-width: 900px;">
+        <h1 class="mb-4 text-center">Guía de Leyes Lógicas</h1>
+        <p class="lead text-center mb-5">
+            Estas son las principales leyes de equivalencia lógica que se utilizan para simplificar expresiones proposicionales.
+        </p>
+
+        <div class="accordion" id="leyesAccordion">
+
+            <!-- Leyes de De Morgan -->
+            <div class="accordion-item bg-transparent text-white">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDeMorgan" aria-expanded="false" aria-controls="collapseDeMorgan">Leyes de De Morgan</button>
+                </h2>
+                <div id="collapseDeMorgan" class="accordion-collapse collapse" data-bs-parent="#leyesAccordion">
+                    <div class="accordion-body" role="region" aria-labelledby="headingDeMorgan">
+                        <p>Permiten transformar la negación de una conjunción en una disyunción de negaciones, y viceversa.</p>
+                        <ul>
+                            <li><code>¬(P ∧ Q) ≡ ¬P ∨ ¬Q</code></li>
+                            <li><code>¬(P ∨ Q) ≡ ¬P ∧ ¬Q</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ley Distributiva -->
+            <div class="accordion-item bg-transparent text-white">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDistributiva" aria-expanded="false" aria-controls="collapseDistributiva">Ley Distributiva</button>
+                </h2>
+                <div id="collapseDistributiva" class="accordion-collapse collapse" data-bs-parent="#leyesAccordion">
+                    <div class="accordion-body" role="region" aria-labelledby="headingDistributiva">
+                        <p>Permiten "distribuir" un conector sobre otro.</p>
+                        <ul>
+                            <li><code>P ∧ (Q ∨ R) ≡ (P ∧ Q) ∨ (P ∧ R)</code></li>
+                            <li><code>P ∨ (Q ∧ R) ≡ (P ∨ Q) ∧ (P ∨ R)</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ley Asociativa -->
+            <div class="accordion-item bg-transparent text-white">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAsociativa" aria-expanded="false" aria-controls="collapseAsociativa">Ley Asociativa</button>
+                </h2>
+                <div id="collapseAsociativa" class="accordion-collapse collapse" data-bs-parent="#leyesAccordion">
+                    <div class="accordion-body" role="region" aria-labelledby="headingAsociativa">
+                        <p>Permiten reagrupar proposiciones cuando el conector es el mismo.</p>
+                        <ul>
+                            <li><code>(P ∧ Q) ∧ R ≡ P ∧ (Q ∧ R)</code></li>
+                            <li><code>(P ∨ Q) ∨ R ≡ P ∨ (Q ∨ R)</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ley Conmutativa -->
+            <div class="accordion-item bg-transparent text-white">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseConmutativa" aria-expanded="false" aria-controls="collapseConmutativa">Ley Conmutativa</button>
+                </h2>
+                <div id="collapseConmutativa" class="accordion-collapse collapse" data-bs-parent="#leyesAccordion">
+                    <div class="accordion-body" role="region" aria-labelledby="headingConmutativa">
+                        <p>El orden de las proposiciones no altera el resultado para la conjunción y la disyunción.</p>
+                        <ul>
+                            <li><code>P ∧ Q ≡ Q ∧ P</code></li>
+                            <li><code>P ∨ Q ≡ Q ∨ P</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ley de Doble Negación -->
+            <div class="accordion-item bg-transparent text-white">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDobleNegacion" aria-expanded="false" aria-controls="collapseDobleNegacion">Ley de Doble Negación</button>
+                </h2>
+                <div id="collapseDobleNegacion" class="accordion-collapse collapse" data-bs-parent="#leyesAccordion">
+                    <div class="accordion-body" role="region" aria-labelledby="headingDobleNegacion">
+                        <p>Negar una proposición dos veces es equivalente a la proposición original.</p>
+                        <ul>
+                            <li><code>¬(¬P) ≡ P</code></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leyes de Identidad y Negación -->
+            <div class="accordion-item bg-transparent text-white">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseIdentidadNegacion" aria-expanded="false" aria-controls="collapseIdentidadNegacion">Leyes de Identidad, Negación y Dominación</button>
+                </h2>
+                <div id="collapseIdentidadNegacion" class="accordion-collapse collapse" data-bs-parent="#leyesAccordion">
+                    <div class="accordion-body" role="region" aria-labelledby="headingIdentidadNegacion">
+                        <p>Estas leyes definen cómo interactúan las proposiciones con las constantes Verdadero (V) y Falso (F).</p>
+                        <ul>
+                            <li><code>P ∧ V ≡ P</code> (Identidad)</li>
+                            <li><code>P ∨ F ≡ P</code> (Identidad)</li>
+                            <li><code>P ∨ V ≡ V</code> (Dominación)</li>
+                            <li><code>P ∧ F ≡ F</code> (Dominación)</li>
+                            <li><code>P ∨ ¬P ≡ V</code> (Negación)</li>
+                            <li><code>P ∧ ¬P ≡ F</code> (Negación)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,8 +1,5 @@
 # Proyecto_Logica
 
-[![Python Application CI](https://github.com/Marbinseca/Proyecto_Logica/actions/workflows/ci.yml/badge.svg)](https://github.com/Marbinseca/Proyecto_Logica/actions/workflows/ci.yml)
-
-
 Proyecto_Logica es una herramienta educativa para trabajar con lógica proposicional. Permite:
 - Convertir enunciados en lenguaje natural a notación simbólica.
 - Insertar símbolos lógicos desde la interfaz en páginas editables.
